@@ -57,20 +57,24 @@ jobs:
                       raise SystemExit(f"Unsafe path: {name}")
 
               for name in allowed:
+                  # Do not install a workflow using the Actions token.
+                  if name.startswith(".github/workflows/"):
+                      print(f"Skipped workflow file: {name}")
+                      continue
+
                   dest = pathlib.Path(name)
                   dest.parent.mkdir(parents=True, exist_ok=True)
                   dest.write_bytes(z.read(name))
 
-          print("ZIP validated and extracted successfully.")
+          print("Files extracted successfully.")
           PY
 
-      
       - name: Commit extracted files
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add -f xek-send .github/workflows/xek-send-build.yml
+          git add -f xek-send
 
           git diff --cached --quiet && exit 0
 
