@@ -1,0 +1,11 @@
+--- a/drivers/power/qpnp-fg.c
++++ b/drivers/power/qpnp-fg.c
+@@ -4033,7 +4033,7 @@
+ }
+ 
+ #define FG_PROFILE_LEN			128
+-#define PROFILE_COMPARE_LEN		32
++#define PROFILE_COMPARE_LEN		FG_PROFILE_LEN
+ #define THERMAL_COEFF_ADDR		0x444
+ #define THERMAL_COEFF_OFFSET		0x2
+ static int fg_batt_profile_init(struct fg_chip *chip)

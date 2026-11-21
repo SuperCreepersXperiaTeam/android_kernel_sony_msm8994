@@ -1,0 +1,5 @@
+Historical reading: 491960 ohm -> integer division by 1000 = 491 kOhm.
+SEND candidate target: 492 kOhm. Delta 1 kOhm. Container batt-id-range-pct = 17.
+Allowed delta = floor(492*17/100) = 83 kOhm. 1 <= 83: match.
+LG target 123 kOhm. Delta 368 kOhm. Allowed floor(123*17/100)=20 kOhm. 368 > 20: no match.
+The algorithm uses the closest profile inside its configured range. These calculations assume the historical resistance_id value is a stable physical ID reading in ohms and the installed pack is the matching 1294-1249 variant.

@@ -1,0 +1,11 @@
+--- a/arch/arm/boot/dts/qcom/batterydata-kitakami-sumire-send.dtsi
++++ b/arch/arm/boot/dts/qcom/batterydata-kitakami-sumire-send.dtsi
+@@ -24,7 +24,7 @@
+ 	somc,step-charge-en = <1>;
+ 	somc,step-charge-threshold = <65>;
+ 	somc,step-charge-current-ma = <2100>;
+-	qcom,batt-id-kohm = <222>;
++	qcom,batt-id-kohm = <492>; /* candidate: measured RESISTANCE_ID 491960 ohm */
+ 	qcom,battery-type = "1294-1249";
+ 	qcom,chg-rslow-comp-c1 = <2527374>;
+ 	qcom,chg-rslow-comp-c2 = <2713627>;
