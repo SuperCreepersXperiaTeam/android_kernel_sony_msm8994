@@ -1,0 +1,78 @@
+
+name: XEK SEND - Automatic ZIP Installer
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate ZIP
+        run: |
+          ZIP="XEK_SEND_GitHub_Actions_Automation_v1.3.zip"
+          test -f "$ZIP" || {
+            echo "Automation ZIP not found in repository root"
+            exit 1
+          }
+
+      - name: Extract ZIP safely
+        run: |
+          python3 - <<'PY'
+          import zipfile
+          import pathlib
+
+          archive = "XEK_SEND_GitHub_Actions_Automation_v1.3.zip"
+
+          allowed = {
+              "xek-send/README_ES.txt",
+              "xek-send/PROFILE_MATH.txt",
+              "xek-send/build.sh",
+              "xek-send/reference/sumire-send-original.dtsi",
+              "xek-send/reference/sumire-send-calibrated.dtsi",
+              "xek-send/patches/0001-sumire-send-id-match.patch",
+              "xek-send/patches/0002-fg-compare-full-profile.patch",
+              ".github/workflows/xek-send-build.yml",
+          }
+
+          with zipfile.ZipFile(archive) as z:
+              names = set(z.namelist())
+
+              if names != allowed:
+                  raise SystemExit(
+                      f"ZIP contents mismatch. Missing: {allowed-names}; "
+                      f"unexpected: {names-allowed}"
+                  )
+
+              for name in allowed:
+                  path = pathlib.PurePosixPath(name)
+                  if path.is_absolute() or ".." in path.parts:
+                      raise SystemExit(f"Unsafe path: {name}")
+
+              for name in allowed:
+                  dest = pathlib.Path(name)
+                  dest.parent.mkdir(parents=True, exist_ok=True)
+                  dest.write_bytes(z.read(name))
+
+          print("ZIP validated and extracted successfully.")
+          PY
+
+      - name: Commit extracted files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add xek-send .github/workflows/xek-send-build.yml
+
+          git diff --cached --quiet && exit 0
+
+          git commit -m "Install XEK SEND automation v1.3"
+          git push
