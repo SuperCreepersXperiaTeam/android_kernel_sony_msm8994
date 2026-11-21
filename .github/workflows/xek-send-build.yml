@@ -1,0 +1,66 @@
+name: XEK SEND Kernel Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_send_id:
+        description: "¿Has medido de nuevo RESISTANCE_ID estable alrededor de 491960 ohm y confirmado batería 1294-1249?"
+        required: true
+        type: choice
+        default: "no"
+        options:
+          - "no"
+          - "yes_491960_ohm"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    if: github.event.inputs.confirm_send_id == 'yes_491960_ohm'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 180
+    steps:
+      - name: Checkout kernel source
+        uses: actions/checkout@v4
+        with:
+          ref: lineage-18.1
+          fetch-depth: 1
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bc bison flex gcc-aarch64-linux-gnu make             libssl-dev libelf-dev device-tree-compiler python3
+
+      - name: Verify source branch and kernel version
+        run: |
+          test "$(git branch --show-current)" = "lineage-18.1" ||             test "$(git rev-parse --abbrev-ref HEAD)" = "HEAD"
+          grep -q '^VERSION = 3$' Makefile
+          grep -q '^PATCHLEVEL = 10$' Makefile
+          grep -q '^SUBLEVEL = 108$' Makefile
+          test -f arch/arm64/configs/kitakami_sumire_defconfig
+
+      - name: Apply and build SEND kernel
+        shell: bash
+        run: |
+          chmod +x xek-send/build.sh
+          ./xek-send/build.sh
+
+      - name: Upload kernel and verification records
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: XEK-SEND-Image-gz-dtb
+          path: |
+            out/
+          if-no-files-found: warn
+          retention-days: 14
+
+  refuse-unverified-id:
+    if: github.event.inputs.confirm_send_id != 'yes_491960_ohm'
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Stop — SEND ID not confirmed
+        run: |
+          echo "::error::No se compila el perfil SEND con un ID no verificado. Mide RESISTANCE_ID y vuelve a ejecutar."
+          exit 1
